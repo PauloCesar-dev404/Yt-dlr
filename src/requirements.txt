@@ -1,0 +1,2 @@
+ffmpeg-for-python>=0.3.5
+youtube-analyzer>=0.7

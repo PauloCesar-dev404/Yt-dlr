@@ -2,3 +2,12 @@
 .gitignore
 .gitattributes
 .venv
+/src/Bing_Translation
+/src/yt-dlr/yt-dlr.dist
+/src/__pycache__
+/src/captions
+PyDocsGenerator-1.0.0-py3-none-any.whl
+src/yt-dlr/yt_dlr.dist/_bz2.pyd
+src/t.py
+src/yt-dlr
+src/doc.py

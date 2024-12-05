@@ -39,13 +39,13 @@ yt-dlr.exe --download "URL-DA-PLAYLIST"
 1. **Baixar um vídeo com legendas:**
 
     ```bash
-    yt-dlr.exe --download "https://www.youtube.com/watch?v=dQw4w9WgXcQ" --include-captions
+    ./yt-dlr.exe --download "URL-VIDEO" --include-captions
     ```
 
 2. **Baixar uma playlist:**
 
     ```bash
-    yt-dlr.exe --download "https://www.youtube.com/playlist?list=PLw-VjHDlEOgs671tVdhwpyJdgoeVbpqG6"
+    ./yt-dlr.exe --download "URL-playlist"
     ```
 
 ## Problemas Comuns

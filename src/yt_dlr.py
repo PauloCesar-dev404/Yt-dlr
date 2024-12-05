@@ -9,6 +9,7 @@ import ffmpeg_for_python
 from ffmpeg_for_python import FFmpeg
 from youtube_analyzer import VideoMetadates, PlaylistMetadates
 from utils import *
+from youtube_analyzer.exeptions import *
 
 user_path = os.path.expanduser('~')
 dw_path = os.path.join(user_path, 'Yt-dlr')
@@ -51,6 +52,7 @@ def remux(a_path: str, v_path: str, out: str, origem_path: str, include_captions
     """
 
     try:
+        print('')
         ffmpeg = FFmpeg()
         tot = 0
         if len(include_captions.strip()) > 0:
@@ -95,7 +97,7 @@ def remux(a_path: str, v_path: str, out: str, origem_path: str, include_captions
                     sys.stdout.write(
                         f"\r{Colors.WARNING}Gerando Vídeo Com legendas{Colors.RESET} {Colors.ERROR}=>{Colors.RESET}"
                         f" {Colors.GRAY}{formatted_size}s{Colors.RESET} =>"
-                        f"{Colors.GRAY} {time}{Colors.RESET}\t") #
+                        f"{Colors.GRAY} {time}{Colors.RESET}\t")  #
                 else:
                     sys.stdout.write(
                         f"\r{Colors.WARNING}Gerando Vídeo =>{Colors.RESET} {Colors.GRAY}{formatted_size}s{Colors.RESET}"
@@ -114,7 +116,7 @@ def remux(a_path: str, v_path: str, out: str, origem_path: str, include_captions
         raise ffmpeg_for_python.FFmpegExceptions(f"Erro ao remuxar: {e}")
 
 
-def captiones(url_video: str, lang: str) -> str:
+def captiones(url_video: str, lang: str) -> str | None:
     """
     Obtém legendas de um vídeo do YouTube.
 
@@ -149,8 +151,11 @@ def captiones(url_video: str, lang: str) -> str:
                 raise FileNotFoundError("Erro: Arquivo de legenda não encontrado ou está vazio.")
 
         else:
-            raise FileNotFoundError("Erro: Legenda não disponível para o vídeo.")
-
+            return caption_path
+    except NotCaptions:
+        return None
+    except YoutubeRequestError:
+        return None
     except Exception as e:
         raise FileNotFoundError(f"Erro ao obter legendas: {e}")
 
@@ -285,16 +290,20 @@ def downloader_video(url_video: str, output_dir: str, title: str = None, include
         except Exception as e:
             attempts += 1
             if attempts < MAX_ATTEMPTS:
-                print(f"Falha ao baixar o vídeo ({attempts}/{MAX_ATTEMPTS}) => '{e}'. Tentando novamente...")
+                print(f"{Colors.ERROR}Falha ao baixar o vídeo ({attempts}/{MAX_ATTEMPTS}) => {Colors.GRAY}'{e}'"
+                      f" {Colors.RESET}{Colors.WARNING}Tentando novamente...{Colors.RESET}")
+                time.sleep(3)
                 continue
             else:
-                print(f"Falha ao baixar o vídeo após {MAX_ATTEMPTS} tentativas => '{e}'")
+                print_error(
+                    f"Falha ao baixar o vídeo após {MAX_ATTEMPTS} tentativas => {Colors.GRAY}'{e}'{Colors.RESET}")
                 sys.exit(1)
 
 
 def pl_parser(url_pl, include_captions: str = ''):
     """
     Processa uma playlist e baixa os vídeos.
+    :param include_captions:
     :param url_pl: URL da playlist.
     """
     try:
@@ -322,8 +331,12 @@ def pl_parser(url_pl, include_captions: str = ''):
                 downloader_video(url_video=url_watch, output_dir=pl_path, title=title)
 
         print_success(f"Playlist '{playlist_info.playlist_name}' baixada com sucesso!")
-    except Exception as e:
-        print_error(f"Ococrreu uma falha ao baixar a playlist => '{e}'")
+    except InvalidPlaylistError:
+        err = traceback.format_exc()
+        print_error(f"Ococrreu uma falha ao baixar a playlist é inválida!")
+        sys.exit(1)
+    except InvalidIdUrlYoutube:
+        print_error(f"Ococrreu uma falha a url da playlist é inválida!")
         sys.exit(1)
 
 
@@ -378,9 +391,6 @@ if __name__ == "__main__":
             except (IndexError, ValueError) as e:
                 print_error(f"Erro no argumento '--include-captions': {e}")
                 sys.exit(1)
-        else:
-            print_error("O argumento '--include-captions' é obrigatório.")
-            sys.exit(1)
 
         # Processa o download de vídeo ou playlist
         if 'playlist?list=' in download_video:

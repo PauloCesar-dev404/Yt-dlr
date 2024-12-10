@@ -16,7 +16,7 @@
 Para baixar um vídeo específico e incluir as legendas (se disponíveis), execute o seguinte comando no terminal ou prompt de comando:
 
 ```bash
-yt-dlr.exe --download "URL-AQUI" --include-captions
+yt-dlr.exe --download "URL-AQUI" --include-captions "pt" 
 ```
 
 Este comando irá baixar o vídeo indicado na URL e incluirá a legenda original (caso esteja disponível).

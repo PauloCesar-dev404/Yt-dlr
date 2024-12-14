@@ -17,6 +17,7 @@ temp_dir = tempfile.mkdtemp('Yt-dlr_temp')
 os.makedirs(dw_path, exist_ok=True)
 MAX_ATTEMPTS = 10
 download_video = None
+DEBUG = False
 
 
 def remux(a_path: str, v_path: str, out: str, origem_path: str, include_captions: str = '') -> None:
@@ -112,7 +113,11 @@ def remux(a_path: str, v_path: str, out: str, origem_path: str, include_captions
         print(f"\n{origem_path} ", end=' ')
         print(f'{Colors.SUCCESS} Baixado!{Colors.RESET}')
     except Exception as e:
-        err = traceback.format_exc()
+        if DEBUG:
+            err = traceback.format_exc()
+            print_error(
+                f"ERRO NÃO TRATADO => {Colors.GRAY}'{err}'{Colors.RESET}")
+            sys.exit(1)
         raise ffmpeg_for_python.FFmpegExceptions(f"Erro ao remuxar: {e}")
 
 
@@ -254,7 +259,10 @@ def downloader_video(url_video: str, output_dir: str, title: str = None, include
             v = VideoMetadates()  # Certifique-se de que essa classe está definida corretamente
             video_info = v.get_video_info(url_video=url_video)
             titlev = video_info.title
-            filename = f"{sanitize_filename(title) or sanitize_filename(titlev)}.mp4"
+            if title:
+                filename = f"{sanitize_filename(title)}.mp4"
+            else:
+                filename = f"{sanitize_filename(titlev)}.mp4"
             final_path = os.path.join(output_dir, filename)
 
             # Verificar se o vídeo já foi baixado
@@ -288,6 +296,12 @@ def downloader_video(url_video: str, output_dir: str, title: str = None, include
 
             return final_path
         except Exception as e:
+            if DEBUG:
+                err = traceback.format_exc()
+                print_error(
+                    f"ERRO NÃO TRATADO => {Colors.GRAY}'{err}'{Colors.RESET}")
+                sys.exit(1)
+
             attempts += 1
             if attempts < MAX_ATTEMPTS:
                 print(f"{Colors.ERROR}Falha ao baixar o vídeo ({attempts}/{MAX_ATTEMPTS}) => {Colors.GRAY}'{e}'"
@@ -399,8 +413,13 @@ if __name__ == "__main__":
             downloader_video(url_video=download_video, output_dir=dw_path, include_captions=include_captions)
 
     except KeyboardInterrupt:
-        print_error("Interrompido pelo usuário!")
+        print(f"{Colors.ERROR}Interrompido pelo usuário!{Colors.RESET}")
         sys.exit(1)
     except Exception as e:
+        if DEBUG:
+            err = traceback.format_exc()
+            print_error(
+                f"ERRO NÃO TRATADO => {Colors.GRAY}'{err}'{Colors.RESET}")
+            sys.exit(1)
         print_error(f"não tratado: {e} ,para a url -> '{download_video}'")
         sys.exit(1)
